@@ -4,7 +4,7 @@ const modalContainer = document.querySelector(".modal-container")
 const ticketContainer = document.querySelector(".ticket-container")
 const ticketLocker = document.querySelector(".ticket-lock > i")
 
-const allContainers = document.querySelectorAll(".color")
+const allContainers = document.querySelectorAll(".modal-color")
 const textAreaContainer = document.querySelector(".textArea-container")
 const mainContainer = document.querySelector(".main-container")
 const allFilterContainers = document.querySelectorAll(".color")
@@ -91,6 +91,50 @@ modalContainer.addEventListener('keydown', event => {
     }
 })
 
+// Filtering colors
+allFilterContainers.forEach((container) => {
+
+    container.addEventListener('click', event => {
+        // fetching the color
+        const filterColor = container.classList[0]
+        
+        // Filter my list of tasks to get only those that match
+
+        const filteredTasks = ticketsArray.filter((elem) => {
+            return filterColor == elem.type
+        })
+        // Re-generate my DOM using these filtered tasks/tickets
+
+        // Step 1: Get all tickets & remove them from the DOM
+        const allTicketDivs = document.querySelectorAll('.ticket-container')
+
+        allTicketDivs.forEach((ticket) => {
+            ticket.remove()
+        })
+
+        // Re-create new filtered items to the DOM
+        filteredTasks.forEach((filteredTask) => {
+            createTask(filteredTask.type, filteredTask.value, filteredTask.id)
+        })
+    })
+        // console.log(filterTask, ticketsArray)
+
+    container.addEventListener('dblclick', event => {
+        const allTicketDivs = document.querySelectorAll('.ticket-container')
+
+        allTicketDivs.forEach((ticket) => {
+            ticket.remove()
+        })
+
+        // Re-create new filtered items to the DOM
+        ticketsArray.forEach((filteredTask) => {
+            createTask(filteredTask.type, filteredTask.value, filteredTask.id)
+        })
+    })
+        
+})
+
+// Reusable function to create tasks and filter out when there are multiple tasks
 function createTask(taskType, taskValue, taskId){
     
     //1. Create a new element
@@ -105,32 +149,43 @@ function createTask(taskType, taskValue, taskId){
                         <div class="ticket-lock">
                             <i class="fa-solid fa-lock"></i>
                         </div>`
-    
-    // Creating a ticket object to perform task filtering
-    const ticketObject  = {
-        id: taskId,
-        type: taskType,
-        value: taskValue
-    }
 
-    ticketsArray.push(ticketObject)
+    //To prevent the task from repeating multiple times after clicking on the webpage and console --
+    const ticketIndex = ticketsArray.findIndex((elem) => {
+        return elem.id == taskId
+    })
+    
+    if(ticketIndex == -1){
+    // Creating a ticket object to perform task filtering
+        const ticketObject  = {
+            'id': taskId,
+            'type': taskType,
+            'value': taskValue
+        }
+        ticketsArray.push(ticketObject)
+    }
     console.log(ticketsArray)
     
-    handleRemoval(newDiv)
+    handleRemoval(newDiv, taskId)
     handleLock(newDiv, taskId)
-    handlePriorityChange(newDiv)
+    handlePriorityChange(newDiv, taskId)
     
     //3. Append the children to main container
     mainContainer.appendChild(newDiv)
 }
 
-function handleRemoval(div){
+function handleRemoval(div,id){
+    const idx = findTicketIdx(id)
     div.addEventListener('click', event => {
-        if(isDeleteModeActive)
+        if(isDeleteModeActive){
     // Two ways of removing or hiding an item
     //1. Setting display to none
     //2. Calling the remove function
             div.remove()
+
+    // Fetch the corresponding div from a list of divs and remove an item from the array
+            ticketsArray.splice(idx,1)
+        }
     })
 }
 
@@ -170,7 +225,7 @@ function handleLock(divToBeLocked, ticketId) {
             // taskAreaElement.focus()
             taskAreaElement.setAttribute('contenteditable', 'true')
 
-            // console.log(ticketsArray)
+             console.log(ticketsArray)
         } else {
             // Remove the class
             iconElement.classList.remove(unlockedClass)
@@ -181,19 +236,21 @@ function handleLock(divToBeLocked, ticketId) {
 
             // Update my application state
             ticketsArray[idx].value = taskAreaElement.innerText
-            // console.log({ ticketsArray })
+            console.log({ ticketsArray })
         }
         
     })
 }
 
 // Switching colors after the task is assigned
-function handlePriorityChange(colorSwitch){
+function handlePriorityChange(colorSwitch, id){
     const changeColor = colorSwitch.querySelector(".ticket-color")
+    const idx = findTicketIdx(id)
 
     changeColor.addEventListener('click', () =>{
         const colorTag = changeColor.classList[1];
         // console.log(colorTag)
+
 
         const index = colorsArray.findIndex((elem) =>{
             return elem == colorTag
@@ -204,7 +261,8 @@ function handlePriorityChange(colorSwitch){
         changeColor.classList.remove(colorTag)
         changeColor.classList.add(colorsArray[newIdx])
 
+        ticketsArray[idx].type = colorsArray[newIdx]
+        console.log({ticketsArray})
+
     })
 }
-
-// Filtering colors

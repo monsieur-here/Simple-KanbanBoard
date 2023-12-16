@@ -22,6 +22,21 @@ const unlockedClass = "fa-lock-open"
 const ticketsArray = []
 const colorsArray = ['lightpink', 'lightgreen', 'lightblue', 'black']
 
+const LOCALSTORAGE_KEY = 'tickets'
+
+// Retrieve the value of tickets from LocalStorage
+
+//Step 1: Get the tickets from local storage (type String)
+const ticketsInStorage = localStorage.getItem(LOCALSTORAGE_KEY)
+
+if(ticketsInStorage){
+    const getTickets = JSON.parse(ticketsInStorage)
+    // Since forEach works only for arrays not for strings or objects we can use just that
+    getTickets.forEach((ticket) => {
+        createTask(ticket.type, ticket.value, ticket.id)
+    })
+}
+
 function revisedRandId() {
     return Math.random().toString(36).replace(/[^a-z]+/g, '').substring(2, 10)
 }
@@ -163,8 +178,11 @@ function createTask(taskType, taskValue, taskId){
             'value': taskValue
         }
         ticketsArray.push(ticketObject)
+
+        // Update the application state
+        localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(ticketsArray))
     }
-    console.log(ticketsArray)
+    // console.log(ticketsArray)
     
     handleRemoval(newDiv, taskId)
     handleLock(newDiv, taskId)
@@ -178,13 +196,16 @@ function handleRemoval(div,id){
     const idx = findTicketIdx(id)
     div.addEventListener('click', event => {
         if(isDeleteModeActive){
-    // Two ways of removing or hiding an item
-    //1. Setting display to none
-    //2. Calling the remove function
+            // Two ways of removing or hiding an item
+            //1. Setting display to none
+            //2. Calling the remove function
             div.remove()
 
-    // Fetch the corresponding div from a list of divs and remove an item from the array
+            // Fetch the corresponding div from a list of divs and remove an item from the array
             ticketsArray.splice(idx,1)
+
+            // Update the application state
+        localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(ticketsArray))
         }
     })
 }
@@ -194,7 +215,6 @@ function findTicketIdx(id) {
         return ticket.id == id
     })
 }
-
 
 function handleLock(divToBeLocked, ticketId) {
     // Add an event listener to my lock
@@ -236,7 +256,10 @@ function handleLock(divToBeLocked, ticketId) {
 
             // Update my application state
             ticketsArray[idx].value = taskAreaElement.innerText
-            console.log({ ticketsArray })
+            // console.log({ ticketsArray })
+
+            // Update the application state
+            localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(ticketsArray))
         }
         
     })
@@ -262,7 +285,10 @@ function handlePriorityChange(colorSwitch, id){
         changeColor.classList.add(colorsArray[newIdx])
 
         ticketsArray[idx].type = colorsArray[newIdx]
-        console.log({ticketsArray})
+        // console.log({ticketsArray})
+
+        // Update the application state
+        localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify(ticketsArray))
 
     })
 }
